@@ -1,11 +1,13 @@
 # micropython_debugger
 A poor man's but effective micropython interactive command line debugger.
 
-in python do the following to enable the debugger:
+As an example in python do the following to enable the debugger:
 ```python
 import ble_ledmatrix_demo
+
 import debugger
 debugger.start()
+
 ble_ledmatrix_demo.demo()
 ```
 
