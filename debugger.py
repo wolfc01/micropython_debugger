@@ -1,4 +1,12 @@
-#debugger
+#
+# Simple micropython debugger, to be used at the same port where also the REPL is executed.
+# Built on the settrace function which has been added by https://github.com/dpgeorge, at issue https://github.com/micropython/micropython/pull/5026
+#
+# mpconfigport.h has to be changed for this:
+# define MICROPY_PY_SYS_SETTRACE       (1) // To activate sys.settrace(tracefunc)
+# define MICROPY_COMP_CONST            (0) // required for MICROPY_PY_SYS_SETTRACE
+# define MICROPY_PERSISTENT_CODE_SAVE  (1) // required for MICROPY_PY_SYS_SETTRACE
+
 import sys
 
 STATE_STEP=1
