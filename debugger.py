@@ -16,20 +16,34 @@ STATE_GO_NOBREAKPOINTSTRACE=4
 currState = STATE_STEP
 breakpoints = {}
 
+breakcounter = 0
+show_breakcounter = False
 
-def printFrame(frame):
-	print("%s,%s" %(frame.f_code.co_filename, frame.f_lineno))
+
+def printFrame(frame, showCount=False):
+	if showCount == False:
+		print('File "%s", line %s, in %s' %(frame.f_code.co_filename, frame.f_lineno, frame.f_code.co_name))
+	else:
+		print('[%6d] File "%s", line %s, in %s' %(breakcounter, frame.f_code.co_filename, frame.f_lineno, frame.f_code.co_name))
+		
 
 def printTb(frame):
 	if frame.f_back:
 		printTb(frame.f_back)
 	printFrame(frame)
 	
-def doCommand():
+def doCommand(frame):
 	global currState
+	global breakcounter
+	global show_breakcounter
 	while True:
-		cmd = input("Enter to step, 'g' to go, 'gt' to go with linenumber trace, 'n' to go to next breakpoint, 'b' to enter breakpoint, 'p' to print breakoints:")
-		if cmd == 'b':
+		cmd = input("Debugger,? for help >")
+		if cmd == '?':
+			s = "help:\n<enter>:step\n'g'    :go\n'gt'   :go with linenr trace\n'n'    :goto next break\n'b'    :enter breakpoint\n'p'    :print breakpoints\n'bt'   :backtrace\n'bc'   :toggle breakcounter\n"
+			print(s) 
+		elif cmd == 'bc':
+			show_breakcounter = not(show_breakcounter)
+		elif cmd == 'b':
 			linenumber = None
 			file = None
 			while linenumber is None or file is None:
@@ -67,29 +81,34 @@ def doCommand():
 			currState = STATE_GO_NOBREAKPOINTSTRACE
 			print("Running, with line number tracing, exit debugger.")
 			break
+		elif cmd == "bt":
+			printTb(frame)
 		else:
 			print("Unknown command, please retry.")
 				
 
 def debugCb(frame, a, b):
 	global currState
+	global breakcounter
+	global show_breakcounter
+	breakcounter += 1
 	if currState == STATE_STEP:
 		print("Stopped at:", end='')
 		printFrame(frame)
-		doCommand()
+		doCommand(frame)
 	elif currState == STATE_GO_NEXTBREAKPOINT:
-		#check if we have hit a breapoint
+		#check if we have hit a breakpoint
 		if frame.f_code.co_filename in breakpoints:
 			if frame.f_lineno in breakpoints[frame.f_code.co_filename]:
 				#hit
 				print("Stopped at:", end='')
 				printFrame(frame)
-				doCommand()
+				doCommand(frame)
 	elif currState == STATE_GO_NOBREAKPOINTS:
 		#do not check for breakpoints any more
 		pass
 	elif currState == STATE_GO_NOBREAKPOINTSTRACE:
-		printFrame(frame)
+		printFrame(frame, show_breakcounter)
 	else:
 		print("state error")
 	return(debugCb)
